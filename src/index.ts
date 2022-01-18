@@ -1,17 +1,50 @@
 import express from 'express';
-import * as http from 'http';
-import * as ws from 'ws';
+import http from 'http';
+import Server, { Socket } from "socket.io";
+import jwtAuthHandler from './auth/jwt';
+import cors from 'cors';
+import { getUserId } from './lib/helper';
+import { registerSocket, unregisterSocket } from './lib/store';
+import * as dotenv from 'dotenv';
+import contacts from './modules/contacts';
+import logger from './lib/logger';
+
+dotenv.config();
 
 const app: express.Application = express();
-const server: http.Server = http.createServer(app);
-const wss: ws.Server = new ws.Server({ server });
+app.use(cors({ origin: '*' }));
 
-wss.on('connection', (ws: ws) => {
-  ws.on('message', (message: string) => {
-    console.log(message);
+const httpServer: http.Server = http.createServer(app);
+const sio: Server = new Server(httpServer,{
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,
+  serveClient: true
+});
+
+if (sio) {
+  sio.use(jwtAuthHandler);
+  
+  sio.on('connection', (socket: Socket) => {    
+    const user = getUserId(socket);
+
+    registerSocket(socket);
+
+    if (user) {
+      logger.info(`New connection from ${user}`);
+    }
+
+    socket.on('disconnect', () => {
+      logger.info(`Disconnect from ${user}`);
+      unregisterSocket(socket);
+    });
   });
-});
 
-server.listen(process.env.WS_PORT || 8080, () => {
-  console.log('Server listening on port 8080');
-});
+  contacts(sio);
+}
+
+httpServer.listen(3000);
