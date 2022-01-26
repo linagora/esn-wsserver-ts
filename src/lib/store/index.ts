@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io';
-import { getUserId } from './helper';
-import logger from './logger';
+import { getUserId } from '../helper';
+import logger from '../logger';
 
 type socketStore = Record<string, Socket[]>;
 
