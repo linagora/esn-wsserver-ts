@@ -27,7 +27,8 @@ const connect = (): Promise<AmpConnManager.AmqpConnectionManager> => {
 const bind = (connection: AmpConnManager.AmqpConnectionManager): Promise<AmpConnManager.AmqpConnectionManager> => {
   connection.on('connect', () => {
     connected = true;
-    logger.info('AMQP: CONNECTED');
+
+    logger.info(`AMQP: broadcasting ${AMQP_CONNECTED_TOPIC} event`);
     PubSub.publish(AMQP_CONNECTED_TOPIC, connection);
   });
 
@@ -50,8 +51,9 @@ const bind = (connection: AmpConnManager.AmqpConnectionManager): Promise<AmpConn
 }
 
 const onConnection = (connection: AmpConnManager.AmqpConnectionManager): void => {
-  connection.createChannel({
-    name: "DEFAULT",
+  logger.info('AMQP: creating default channel');
+  const wrapper = connection.createChannel({
+    name: "AMQP default ESN channel",
     setup: (channel: AmpConnManager.ChannelWrapper) => {
       const client: IAmqpPubsubClient = new AmqpPubsubClient(channel);
 
@@ -60,6 +62,10 @@ const onConnection = (connection: AmpConnManager.AmqpConnectionManager): void =>
       PubSub.publish(AMQP_CLIENT_CONNECTED_TOPIC, client);
     }
   });
+
+  wrapper.waitForConnect(() => {
+    logger.info('AMQP: new connection on default channel');
+  })
 }
 
 export const getPubsubClient = (): Promise<IAmqpPubsubClient> => {

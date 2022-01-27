@@ -1,5 +1,5 @@
 export const AMQP_DISCONNECTED_TOPIC = 'amqp:disconnected';
-export const AMQP_CONNECTED_TOPIC = 'amqp:disconnected';
+export const AMQP_CONNECTED_TOPIC = 'amqp:connected';
 export const AMQP_CLIENT_CONNECTED_TOPIC = "amqp:client:available";
 
 export const PUBSUB_EXCHANGE = {

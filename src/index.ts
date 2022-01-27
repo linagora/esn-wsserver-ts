@@ -6,8 +6,9 @@ import cors from 'cors';
 import { getUserId } from './lib/helper';
 import { registerSocket, unregisterSocket } from './lib/store';
 import * as dotenv from 'dotenv';
-import contacts from './modules/contacts';
 import logger from './lib/logger';
+import contact from './modules/contact';
+import manager from './lib/messaging';
 
 dotenv.config();
 
@@ -44,7 +45,8 @@ if (sio) {
     });
   });
 
-  contacts(sio);
+  contact(sio);
 }
 
+manager.init();
 httpServer.listen(3000);

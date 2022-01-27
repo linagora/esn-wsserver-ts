@@ -1,6 +1,7 @@
 
 import { Server, Socket } from 'socket.io';
 import logger from '@server/lib/logger';
+import { listen } from './notifications';
 
 const NAMESPACE = '/contacts';
 let initialized = false;
@@ -8,12 +9,15 @@ let contactNamespace: Server;
 
 export default function (io: Server): void {
   contactNamespace = io.of(NAMESPACE);
+  
 
   if (initialized) {
     logger.warn('Contacts namespace already initialized');
 
     return;
   }
+
+  listen();
 
   logger.info(`Initializing namespace ${NAMESPACE}`);
 

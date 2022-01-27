@@ -2,11 +2,11 @@ import { PUBSUB_EXCHANGE, SUBSCRIBER } from '../constants';
 import logger from '../logger';
 import { AmqpClient } from './client';
 
-export interface IAmqpPubsubClient {
+export interface IAmqpPubsubClient extends AmqpClient {
   publish: (topic: string, data: any) => Promise<void>;
   subscribe: (topic: string, cb: (data: any) => void) => Promise<void>;
   unsubscribe: (topic: string, cb: () => void ) => void;
-  subscribeToDurableQueue: (exchange: string, queue: string, cb: (data: any) => void) => void;
+  subscribeToDurableQueue: (exchange: string, queue: string, cb: (data: any) => void) => Promise<void>;
 }
 
 export class AmqpPubsubClient extends AmqpClient {
