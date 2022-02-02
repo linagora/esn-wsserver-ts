@@ -6,7 +6,7 @@
         "node": ">=14 <15"
     },
     "scripts": {
-        "start": "node src/index",
+        "start": "node build/index",
         "dev": "nodemon --config start.json",
         "clean": "rm -rf build tmp",
         "prebuild": "npm run lint",
@@ -24,8 +24,8 @@
         "axios": "^0.25.0",
         "cors": "^2.8.5",
         "express": "^4.17.1",
+        "ical.js": "^1.5.0",
         "jsonwebtoken": "^8.5.1",
-        "mongoose": "^6.1.6",
         "pubsub-js": "^1.9.4",
         "socket.io": "~2.1.1",
         "tslib": "~2.3.0",
