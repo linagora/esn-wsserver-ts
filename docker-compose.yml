@@ -1,0 +1,8 @@
+version: "3.8"
+
+services:
+  ws-server-ts:
+    image: ws-server-ts:latest
+    build: .
+    ports:
+      - 3000:3000
