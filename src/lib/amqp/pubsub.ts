@@ -6,10 +6,10 @@ export interface IAmqpPubsubClient extends AmqpClient {
   publish: (topic: string, data: any) => Promise<void>;
   subscribe: (topic: string, cb: (data: any) => void) => Promise<void>;
   unsubscribe: (topic: string, cb: () => void ) => void;
-  subscribeToDurableQueue: (exchange: string, queue: string, cb: (data: any) => void) => Promise<void>;
+  subscribeToDurableQueue: (exchange: string, queue: string, cb: () => void) => Promise<void>;
 }
 
-export class AmqpPubsubClient extends AmqpClient {
+export class AmqpPubsubClient extends AmqpClient implements IAmqpPubsubClient {
   publish(topic: string, data: any): Promise<void> {
     logger.info(`AMQP: PUBLISHING TO ${topic}`);
 
@@ -28,7 +28,7 @@ export class AmqpPubsubClient extends AmqpClient {
     logger.info(`AMQP: UNSUBSCRIBING FROM ${topic}`);
   }
 
-  subscribeToDurableQueue(exchange: string, queue: string, cb: (data: any) => void): Promise<void> {
+  subscribeToDurableQueue(exchange: string, queue: string, cb: () => void): Promise<void> {
     return this.assertExchange(exchange, PUBSUB_EXCHANGE.type)
       .then(() => this.assertQueue(queue, SUBSCRIBER.durableQueueOptions))
       .then(() => this.assertBinding(exchange, queue, '', SUBSCRIBER.consumeOptions))

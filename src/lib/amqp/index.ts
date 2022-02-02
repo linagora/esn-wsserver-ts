@@ -2,6 +2,7 @@ import * as AmpConnManager from 'amqp-connection-manager';
 import { AMQP_CONNECTED_TOPIC, AMQP_DISCONNECTED_TOPIC, AMQP_CLIENT_CONNECTED_TOPIC} from '../constants';
 import logger from '../logger';
 import { AmqpPubsubClient, IAmqpPubsubClient } from './pubsub';
+import PubSub from 'pubsub-js';
 
 const { AMQP_CONNECTION_STRING } = process.env;
 let connectionPromise: Promise<void> = null;
@@ -19,7 +20,7 @@ export const createClient = (): Promise<void> => {
 }
 
 const connect = (): Promise<AmpConnManager.AmqpConnectionManager> => {
-  logger.info(`Connecting to AMQP: ${AMQP_CONNECTION_STRING}`);
+  logger.info(`AMQP: Connecting to ${AMQP_CONNECTION_STRING}`);
 
   return Promise.resolve(AmpConnManager.connect([AMQP_CONNECTION_STRING]));
 }
@@ -51,8 +52,7 @@ const bind = (connection: AmpConnManager.AmqpConnectionManager): Promise<AmpConn
 }
 
 const onConnection = (connection: AmpConnManager.AmqpConnectionManager): void => {
-  logger.info('AMQP: creating default channel');
-  const wrapper = connection.createChannel({
+  connection.createChannel({
     name: "AMQP default ESN channel",
     setup: (channel: AmpConnManager.ChannelWrapper) => {
       const client: IAmqpPubsubClient = new AmqpPubsubClient(channel);
@@ -62,10 +62,6 @@ const onConnection = (connection: AmpConnManager.AmqpConnectionManager): void =>
       PubSub.publish(AMQP_CLIENT_CONNECTED_TOPIC, client);
     }
   });
-
-  wrapper.waitForConnect(() => {
-    logger.info('AMQP: new connection on default channel');
-  })
 }
 
 export const getPubsubClient = (): Promise<IAmqpPubsubClient> => {

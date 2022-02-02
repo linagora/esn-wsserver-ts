@@ -143,8 +143,6 @@ export class MessagingManger implements IMessagingManager {
   }
 
   _bindReceiver(channel: string, receiver: any): Promise<void> {
-    logger.debug(`MessagingManager: binding receiver to channel ${channel}`);
-
     return this.client.subscribeToDurableQueue(channel, channel, this._wrapReceiver(channel, receiver));
   }
 

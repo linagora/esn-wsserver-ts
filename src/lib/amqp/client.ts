@@ -10,7 +10,7 @@ export interface IAmqpClient {
   ack: (message: any, all: boolean) => void;
   assertBinding: (queue: string, exchange: string, pattern: string, options?: any) => Promise<void>;
   send: (exchange: string, routingKey: string, content: any, options?: any) => void;
-  consume: (queue: string, onMessage: (message: any) => void, options?: any) => Promise<void>;
+  consume: (queue: string, onMessage: (content: any, message: any) => void, options?: any) => Promise<void>;
 }
 
 export class AmqpClient implements IAmqpClient {
@@ -46,9 +46,9 @@ export class AmqpClient implements IAmqpClient {
     this.channel.publish(exchange, routingKey, content, options);
   }
 
-  consume(queue: string, cb: (message: any) => void, options?: any): Promise<void> {
+  consume(queue: string, cb: (content: any, message: any) => void, options?: any): Promise<void> {
     const onMessage = (message): void | Promise<void> => {
-      const res: any | null = cb(message.content);
+      const res: any | null = cb(JSON.parse(message.content), message);
 
       if (res instanceof Promise) {
         return res.then(() => { this.ack(message, false); });

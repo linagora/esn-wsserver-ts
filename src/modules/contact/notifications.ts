@@ -1,9 +1,10 @@
-import logger from '@server/lib/logger';
-import manager from '@server/lib/messaging';
+import logger from '../../lib/logger';
+import manager from '../../lib/messaging';
 import { EVENTS } from './constants';
+import { parseContact, ParsedContact } from './helper';
+import PubSub from 'pubsub-js';
 
-
-export const listen = (): void => {
+export const init = (): void => {
   logger.info('MessagingManager: listening to contacts messages');
 
   manager.get(EVENTS.CONTACT_CREATED).receive(createdContactHandler);
@@ -17,9 +18,24 @@ export const listen = (): void => {
   manager.get(EVENTS.ADDRESSBOOK_SUBSCRIPTION_DELETED).receive(deletedAddressBookSubscriptionHandler);
 }
 
-const createdContactHandler = (data: any): void => { console.log(data) }
-const updatedContactHandler = (data: any): void => { console.log(data) }
-const deletedContactHandler = (data: any): void => { console.log(data) }
+const createdContactHandler = (data: any): void => { 
+  const payload: ParsedContact = parseContact(data);
+
+  PubSub.publish(EVENTS.CONTACT_CREATED, payload);
+}
+
+const updatedContactHandler = (data: any): void => {
+  const payload = parseContact(data);
+
+  PubSub.publish(EVENTS.CONTACT_UPDATED, payload);
+}
+
+const deletedContactHandler = (data: any): void => { 
+  const payload = parseContact(data);
+
+  PubSub.publish(EVENTS.CONTACT_DELETED, payload);
+}
+
 const createdAddressBookHandler = (data: any): void => { console.log(data) }
 const updatedAddressBookHandler = (data: any): void => { console.log(data) }
 const deletedAddressBookHandler = (data: any): void => { console.log(data) }

@@ -36,11 +36,11 @@ if (sio) {
     registerSocket(socket);
 
     if (user) {
-      logger.info(`New connection from ${user}`);
+      logger.info(`WS: New connection from ${user}`);
     }
 
     socket.on('disconnect', () => {
-      logger.info(`Disconnect from ${user}`);
+      logger.info(`WS: Disconnect from ${user}`);
       unregisterSocket(socket);
     });
   });

@@ -3,7 +3,7 @@ import { verify, Algorithm, JwtPayload } from 'jsonwebtoken';
 import { getSocketInfo, setUserId } from '../lib/helper';
 import { NextFunction } from 'express';
 import { fetchUser, getUser, registerUser } from '../lib/user';
-import logger from '@server/lib/logger';
+import logger from '../lib/logger';
 
 const { SECRET, ALGORITHM = 'RS256' } = process.env;
 

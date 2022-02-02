@@ -1,7 +1,11 @@
 
 import { Server, Socket } from 'socket.io';
-import logger from '@server/lib/logger';
-import { listen } from './notifications';
+import logger from '../..//lib/logger';
+import { init as listen } from './notifications';
+import { EVENTS, WS_EVENTS } from './constants';
+import { ParsedContact, shouldSkipNotification } from './helper';
+import { Logger } from 'winston';
+import PubSub from 'pubsub-js';
 
 const NAMESPACE = '/contacts';
 let initialized = false;
@@ -10,7 +14,6 @@ let contactNamespace: Server;
 export default function (io: Server): void {
   contactNamespace = io.of(NAMESPACE);
   
-
   if (initialized) {
     logger.warn('Contacts namespace already initialized');
 
@@ -19,44 +22,50 @@ export default function (io: Server): void {
 
   listen();
 
-  logger.info(`Initializing namespace ${NAMESPACE}`);
+  logger.info(`WS: Initializing namespace ${NAMESPACE}`);
 
   contactNamespace.on('connection', (socket: Socket) => {
-    logger.info(`New connection on namespace ${NAMESPACE}`);
+    logger.info(`WS: New connection on namespace ${NAMESPACE}`);
 
     socket.on('subscribe', (bookId: string) => {
-      logger.info('Joining contact room', bookId);
+      logger.info('WS: Joining contact room', bookId);
       socket.join(bookId);
     });
 
     socket.on('unsubscribe', (bookId: string) => {
-      logger.info('Leaving contact room', bookId);
+      logger.info('WS: Leaving contact room', bookId);
       socket.leave(bookId);
     });
   });
 
+  PubSub.subscribe(EVENTS.CONTACT_CREATED, handleContactCreation);
+  PubSub.subscribe(EVENTS.CONTACT_UPDATED, handleContactUpdate);
+  PubSub.subscribe(EVENTS.CONTACT_DELETED, handleContactDelete);
+
   initialized = true;
 }
 
-const synchronizeContactsList = (event: any, data: any): void => {
-  contactNamespace && contactNamespace
-    .to(data.bookId)
-    .emit(event, {
-      room: data.bookId,
-      data
-    });
+const synchronizeContactsList = (event: string, data: any): void | Logger => {
+  if (shouldSkipNotification(data)) {
+    return logger.info(`CONTACTS: skipping notification for contact creation`);
+  }
+
+  if (!contactNamespace) {
+    return logger.warn('Contacts namespace is not initialized');
+  }
+
+  logger.info(`CONTACTS: handling ${event} event`);
+  contactNamespace.to(data.bookId).emit(event, { room: data.bookId, data });
 }
 
-export const onContactDelete = (data: any): void => {
-  if (data && data.bookId && data.contactId) {
-    const { bookId, bookName, contactId } = data;
+const handleContactCreation = (_: string, data: ParsedContact): void => {
+  synchronizeContactsList(WS_EVENTS.CONTACT_CREATED, data)
+}
 
-    synchronizeContactsList('contact:deleted', {
-      bookId,
-      bookName,
-      contactId
-    })
-  } else {
-    logger.warn('onContactDelete: missing data');
-  }
+const handleContactUpdate = (_: string, data: ParsedContact): void => {
+  synchronizeContactsList(WS_EVENTS.CONTACT_UPDATED, data)
+}
+
+const handleContactDelete = (_: string, data: ParsedContact): void => {
+  synchronizeContactsList(WS_EVENTS.CONTACT_DELETED, data)
 }
