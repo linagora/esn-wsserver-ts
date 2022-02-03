@@ -2,9 +2,6 @@
     "name": "esn-wssocket-server-ts",
     "version": "1.0.0",
     "description": "ESN WebSocket Server",
-    "engines": {
-        "node": ">=14 <15"
-    },
     "scripts": {
         "start": "node build/index",
         "dev": "nodemon --config start.json",
@@ -28,7 +25,7 @@
         "jsonwebtoken": "^8.5.1",
         "pubsub-js": "^1.9.4",
         "socket.io": "~2.1.1",
-        "tslib": "~2.3.0",
+        "tslib": "^2.3.1",
         "winston": "^3.4.0"
     },
     "devDependencies": {

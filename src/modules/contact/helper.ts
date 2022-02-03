@@ -18,6 +18,10 @@ export type AddressbookInformation = {
   bookName: string;
 }
 
+export type ParsedAddressbook = AddressbookInformation & {
+  userId?: string;
+}
+
 export type Principal = {
   type: string;
   id: string;
@@ -66,3 +70,13 @@ const parsePrincipal = (path: string): Principal | null => {
 }
 
 export const shouldSkipNotification = (data: ParsedContact): boolean => data?.mode === MODE.IMPORT;
+
+export const parseAddressbook = (data: any): ParsedAddressbook => {
+  const addressbookData: ParsedAddressbook | null = parseAddressBookPath(data.path);
+
+  if (data.owner) {
+    addressbookData.userId = parsePrincipal(data.owner).id;
+  }
+
+  return addressbookData;
+}
